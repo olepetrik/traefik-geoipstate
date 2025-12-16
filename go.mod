@@ -1,4 +1,4 @@
-module github.com/olehpetryk/traefik-geoipstate
+module github.com/olepetrik/traefik-geoipstate
 
 go 1.22
 
