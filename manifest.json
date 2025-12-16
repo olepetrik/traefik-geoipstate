@@ -2,7 +2,7 @@
   "type": "middleware",
   "name": "GeoIPState",
   "import": "github.com/olepetrik/traefik-geoipstate",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "displayName": "GeoIP State Detector",
   "description": "Adds X-User-State header with US state code.",
   "compatibility": {
