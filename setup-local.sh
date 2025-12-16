@@ -11,6 +11,9 @@ mkdir -p "$PLUGIN_DIR"
 # Copy plugin files
 cp .traefik.yml go.mod go.sum middleware.go "$PLUGIN_DIR/"
 
+# Copy vendor directory (REQUIRED for dependencies)
+cp -r vendor "$PLUGIN_DIR/"
+
 echo "✓ Plugin files copied to $PLUGIN_DIR"
 echo ""
 echo "Next steps:"
