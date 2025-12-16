@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      # Local plugin configuration
+      - "--experimental.localplugins.geoipstate.modulename=github.com/olepetrik/traefik-geoipstate"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount local plugin for development
+      - ./plugins-local:/plugins-local:ro
+      # Mount GeoIP database (adjust path as needed)
+      - ./GeoLite2-City.mmdb:/etc/traefik/GeoLite2-City.mmdb:ro
+    networks:
+      - traefik
+
+  # Test service
+  whoami:
+    image: traefik/whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.whoami.middlewares=geoip"
+      # Configure the middleware
+      - "traefik.http.middlewares.geoip.plugin.geoipstate.database=/etc/traefik/GeoLite2-City.mmdb"
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    driver: bridge
