@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/oschwald/geoip2-golang"
+	"github.com/IncSW/geoip2"
 )
 
 type Config struct {
@@ -17,25 +17,23 @@ func CreateConfig() *Config {
 }
 
 type GeoIPState struct {
-	next http.Handler
-	db   *geoip2.Reader
+	next   http.Handler
+	reader *geoip2.CityReader
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-
-	db, err := geoip2.Open(config.Database)
+	reader, err := geoip2.NewCityReaderFromFile(config.Database)
 	if err != nil {
 		return nil, err
 	}
 
 	return &GeoIPState{
-		next: next,
-		db:   db,
+		next:   next,
+		reader: reader,
 	}, nil
 }
 
 func (m *GeoIPState) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-
 	// Default values
 	req.Header.Set("X-User-Country", "UNKNOWN")
 	req.Header.Set("X-User-State", "UNKNOWN")
@@ -55,20 +53,20 @@ func (m *GeoIPState) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	record, err := m.db.City(ip)
-	if err != nil {
+	record := m.reader.Lookup(ip)
+	if record == nil {
 		m.next.ServeHTTP(rw, req)
 		return
 	}
 
 	// Country
-	if record.Country.IsoCode != "" {
-		req.Header.Set("X-User-Country", record.Country.IsoCode)
+	if record.Country.ISOCode != "" {
+		req.Header.Set("X-User-Country", record.Country.ISOCode)
 	}
 
-	// State (US subdivision)
-	if len(record.Subdivisions) > 0 && record.Subdivisions[0].IsoCode != "" {
-		req.Header.Set("X-User-State", record.Subdivisions[0].IsoCode)
+	// State (subdivision)
+	if len(record.Subdivisions) > 0 && record.Subdivisions[0].ISOCode != "" {
+		req.Header.Set("X-User-State", record.Subdivisions[0].ISOCode)
 	}
 
 	m.next.ServeHTTP(rw, req)
