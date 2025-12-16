@@ -1,0 +1,9 @@
+displayName: GeoIP State Detector
+type: middleware
+
+import: github.com/olepetrik/traefik-geoipstate
+
+summary: Adds geolocation headers (X-User-Country and X-User-State) based on client IP
+
+testData:
+  database: /tmp/GeoLite2-City.mmdb
